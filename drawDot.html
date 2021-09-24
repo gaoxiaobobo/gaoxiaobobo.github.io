@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圆点闪视</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        .hidden {visibility:hidden;}
+        .hiddenAnswer {visibility:hidden;}
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <label>设置组数</label>
+        <select v-model="numGroup"  style="width: 50px;">
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+        </select>
+
+        <label>最大点数(3-100)</label><input style="width: 50px;" v-model="maxDot" />
+        <label>颜色总数</label>
+        <select v-model="numColor"  style="width: 50px;">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+        </select>
+        <label>显示时间(s)</label><input style="width: 50px;" v-model="showTime" /><br>
+
+
+        <button v-on:click="getTotal">生成数量</button>{{showDot}}
+        <input style="width: 200px;" type="hidden" v-bind:class="{ hidden: isHidden }" v-model="totalDot" />
+
+        
+        <button v-on:click="drawPic" >{{startText}}[第{{numClick}}组]</button>
+        <button v-on:click="showAnswer">显示答案</button>
+        <div v-bind:class="{ hidden: isHiddenAn }" style="color:red;">{{ message }}</div>
+       
+        
+    </div>
+    <canvas class="myCanvas">
+        <p>Add suitable fallback here.</p>
+    </canvas>
+
+
+
+    <script>
+
+        //总数不要超过100，不然会乱
+        const numRed = 0;//红色圆点数量
+        const numYellow = 0;//黄色圆点数量
+        const numBlue = 0;//蓝色圆点数量
+        var data = { numRed, numYellow, numBlue };
+
+
+
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                totalDot: [],//总数 5,6,8,9,4.用英文版逗号分隔
+                numColor:'1',
+                numGroup:3,
+                maxDot:10,
+                isHidden:true,
+                isHiddenAn:true,
+                numClick:0,//点击次数
+                startText:"开始测试",
+                items:[],
+                showTime: 1,
+                showDot:'待生成',
+                arrMessage: [],//统计答案
+                message: '',
+                otimer: null,
+                data: data
+            },
+            methods: {
+                showAnswer: function () {
+                    clearInterval(this.otimer);//停止计时器
+                    // this.message = '共:' + this.totalDot + '个。红色:' + data.numRed + '个,' +
+                    //     '黄色:' + data.numYellow + '个,蓝色:' + data.numBlue + '个';
+                    this.isHidden=false;
+                    this.isHiddenAn=false;//组数的答案
+
+                    this.showDot = this.totalDot.join();//显示数量
+                    const canvas = document.querySelector('.myCanvas');
+                    canvas.style.visibility = 'visible';
+
+                },
+                drawPic: function () {
+                    this.startText="下一组";
+                    this.isHidden=true;
+                    this.isHiddenAn=true;
+                    //准备工作
+                    clearInterval(this.otimer);//停止计时器
+                    // let arrDot = this.totalDot.split(',');
+                    let arrDot = this.totalDot;
+                    let curDot= arrDot[this.numClick];//当前组的点击数
+                    if(this.numClick==arrDot.length){
+                        this.startText = "测试结束";
+                        this.isHidden=false;
+                        return false;
+                    }
+                    // alert(this.numClick,curDot)
+
+                    data.numRed=0;
+                    data.numYellow=0;
+                    data.numBlue=0;
+                    this.message="";
+                    
+
+                    const canvas = document.querySelector('.myCanvas');
+                    canvas.style.visibility = 'visible';
+
+                    const width = canvas.width = window.innerWidth;
+                    const height = canvas.height = window.innerHeight-100;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'rgb(0,0,0)';
+                    ctx.fillRect(0, 0, width, height);
+
+                    function degToRad(degrees) {
+                        return degrees * Math.PI / 180;
+                    };
+
+                    let arrColor =[];
+                    if(this.numColor==1){
+                        arrColor = ["red"];
+
+                    }else if(this.numColor==2){
+                        arrColor = ["red", "yellow"];
+                    }else{
+                      arrColor = ["red", "yellow", "blue"];
+                    }
+                    
+                    
+                    //生成10*10的背景格子，下标1-100
+                    let arrBack = new Array(100)
+                    for (var i = 0; i < arrBack.length; i++) {
+                        arrBack[i] = i + 1;
+                    }
+                    //打乱背景
+                    arrBack.sort(function () { return .5 - Math.random(); })
+
+                    
+                    let numRow = 0;
+                    let numCol = 0;
+                    for (var i = 0; i <curDot; i++) {
+                        //打乱颜色
+                        arrColor.sort(function () { return .5 - Math.random(); })
+                        ctx.fillStyle = arrColor[0];
+
+                        //统计
+                        if(arrColor[0]=="red"){
+                            data.numRed++;
+
+                        }else if(arrColor[0]=="yellow"){
+                            data.numYellow++;
+
+                        }else{
+                            data.numBlue++;
+                        }
+                        ctx.beginPath();
+
+                        //第几列
+                        numRow = Math.floor(arrBack[i] / 10);//第几行
+                        numCol = arrBack[i] % 10;//第几列
+
+                        // ctx.arc(60 * (numCol + 1), 55 * numRow - 25, 20, degToRad(0), degToRad(360), false);
+                        ctx.arc(60 * (numCol + 1), 55 * (numRow + 1) - 25, 20, degToRad(0), degToRad(360), false);
+                        ctx.fill()
+                    }
+
+                    
+                //定时器
+                this.otimer = setInterval(this.hidePic, this.showTime*1000);
+                this.numClick++;
+                if(this.numColor==1){
+                    this.arrMessage.push("第"+this.numClick+"组:共"+curDot + '个。');
+                }else if(this.numColor==2){
+                    this.arrMessage.push("第"+this.numClick+"组:共"+curDot + '个。红色:' + data.numRed 
+                    +',黄色:' + data.numYellow );
+                }else{
+                    this.arrMessage.push("第"+this.numClick+"组:"+curDot + '个。红色:' + data.numRed 
+                     +',黄色:' + data.numYellow 
+                     +',蓝色:' + data.numBlue );
+                }
+                
+                this.message=this.arrMessage.join('▼');
+
+                },
+                hidePic: function () {
+                    const canvas = document.querySelector('.myCanvas');
+                    canvas.style.visibility = 'hidden';
+                },
+                getTotal: function(){
+                    //初始化
+                    this.numClick=0;
+                    this.isHidden=false;
+                    this.totalDot=[];
+                    this.arrMessage=[];
+
+                    let maxNum=this.maxDot;
+                    let minNum=3;
+            
+                    //随机生成组数
+                    for (var i = 0; i <this.numGroup; i++) {
+                        this.totalDot.push(parseInt(Math.random()*(maxNum-minNum+1)+minNum,10))
+                    }
+                    this.showDot="已生成，可以测试了";
+                    this.hideQuest();
+                   
+                },
+                hideQuest:function(){
+                    this.isHidden=true;
+                }
+
+
+
+            },
+            created: function () {
+                // `this` 指向 vm 实例
+                // this.drawPic();
+            },
+            mounted() {
+                // this.drawPic();
+            }
+        })
+
+    </script>
+</body>
+
+</html>
