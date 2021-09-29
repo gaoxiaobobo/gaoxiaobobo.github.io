@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字闪听</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        .hidden {visibility:hidden;}
+        .hiddenAnswer {visibility:hidden;}
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <label>设置组数</label>
+        <select v-model="numGroup"  style="width: 50px;">
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+        </select>
+
+        
+        <label>每组个数</label>
+        <select v-model="numSet"  style="width: 50px;">
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+        </select>
+
+        <button v-on:click="getTotal">生成数字</button>
+        <div  style="color:red;">{{ message }}</div>
+       
+        
+    </div>
+    
+
+
+    <script>
+
+       let PI='1415926535　8979323846　2643383279　5028841971　6939937510'+
+        '5820974944　5923078164　0628620899　8628034825　3421170679'+
+        '8214808651　3282306647　0938446095　5058223172　5359408128'+
+        '4811174502　8410270193　8521105559　6446229489　5493038196'+
+        '4428810975　6659334461　2847564823　3786783165　2712019091'+
+        '4564856692　3460348610　4543266482　1339360726　0249141273'+
+        '7245870066　0631558817　4881520920　9628292540　9171536436'+
+        '7892590360　0113305305　4882046652　1384146951　9415116094'+
+        '3305727036　5759591953　0921861173　8193261179　3105118548'+
+        '0744623799　6274956735　1885752724　8912279381　8301194912'+
+        '9833673362　4406566430　8602139494　6395224737　1907021798'+
+        '6094370277　0539217176　2931767523　8467481846　7669405132'+
+        '0205681271　4526356082　7785771342　7577896091　7363717872'+
+        '1468440901　2249534301　4654958537　1050792279　6892589235'+
+        '4201995611　2129021960　8640344181　5981362977　4771309960'+
+        '5187072113　4991999837　2978049951　0597317328　1609631859'+
+        '5024459455　3469083026　4252230825　3344685035　2619311881'+
+        '7101000313　7838752886　5875332083　8142061717　7669147303'+
+        '5982534904　2875546873　1159562863　8823537875　9375195778'+
+        '1857780532　1712268066　1300192787　6611195909　2164201989';
+        PI = PI.replace(/\s*/g,"");
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                numGroup:5,
+                numSet:3,
+                strPi:PI,
+                arrMessage:[],
+                message: ''
+            },
+            methods: {
+                getTotal: function(){
+                    //初始化
+                    // this.totalDot=[];
+                    this.arrMessage=[];
+
+                    let maxNum=this.numSet*this.numGroup;
+                    let minNum=0;
+                    
+                    let currIndex = parseInt(Math.random()*(maxNum-minNum+1)+minNum,10);
+                    //随机生成组数
+                    let currNum;
+                    for (var i = 0; i <this.numGroup; i++) {
+                        this.arrMessage.push(PI.substr(currIndex+i,this.numSet));
+                    }
+                    // this.message='下标:'+currIndex+'';
+                    this.message=this.arrMessage.join(' ');
+                    
+                   
+                },
+                hideQuest:function(){
+                }
+
+            },
+            created: function () {
+                // `this` 指向 vm 实例
+                // this.drawPic();
+            },
+            mounted() {
+                // this.drawPic();
+            }
+        })
+
+    </script>
+</body>
+
+</html>
